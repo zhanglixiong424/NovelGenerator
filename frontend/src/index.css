@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+/*
+ * Novel Genesis — 末世生存者终端 暗黑电竞风主题
+ * 色彩系统 (方案设计 §6.1)
+ */
+
+@theme {
+  /* 背景色 */
+  --color-bg-primary: #0a0a0f;
+  --color-bg-secondary: #12121a;
+  --color-bg-card: #1a1a25;
+  --color-bg-hover: #252535;
+
+  /* 强调色 */
+  --color-accent-orange: #ff4d00;
+  --color-accent-cyan: #00d4ff;
+  --color-accent-purple: #b829dd;
+  --color-accent-green: #00ff88;
+  --color-accent-red: #ff0040;
+
+  /* 文字色 */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a0a0b0;
+  --color-text-muted: #7a7a8e;
+
+  /* 字体大小 */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* 动画 */
+  --animate-glow-pulse: glow-pulse 2s ease-in-out infinite;
+}
+
+/* 自定义工具类 */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #252535 #0a0a0f;
+  }
+}
+
+/* 发光边框 */
+.border-glow-orange {
+  border: 1px solid rgba(255, 77, 0, 0.3);
+  box-shadow: 0 0 10px rgba(255, 77, 0, 0.1);
+}
+
+.border-glow-cyan {
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.1);
+}
+
+/* 发光阴影 */
+.shadow-glow-orange {
+  box-shadow: 0 0 20px rgba(255, 77, 0, 0.5);
+}
+
+.shadow-glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+/* 扫描线效果（仅桌面端） */
+@media (min-width: 768px) {
+  .scanline::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.08) 2px,
+      rgba(0, 0, 0, 0.08) 4px
+    );
+    z-index: 9999;
+    animation: scanline-scroll 8s linear infinite;
+  }
+}
+
+@keyframes scanline-scroll {
+  from { transform: translateY(0); }
+  to { transform: translateY(4px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* 能量条流动光效 */
+@keyframes energy-flow {
+  from { background-position: 200% center; }
+  to { background-position: -200% center; }
+}
+
+.energy-bar {
+  background: linear-gradient(
+    90deg,
+    #ff4d00,
+    #ff7733,
+    #ff4d00,
+    #ff7733,
+    #ff4d00
+  );
+  background-size: 200% 100%;
+  animation: energy-flow 2s linear infinite;
+}
+
+/* reduced-motion 尊重 */
+@media (prefers-reduced-motion: reduce) {
+  .scanline::after,
+  .energy-bar {
+    animation: none !important;
+  }
+}
