@@ -130,17 +130,24 @@ async def _update_workflow_state(
     db: AsyncSession, project_id: str,
     state: str, chapter_no: int = 0, pending_data: dict | None = None,
 ):
-    """Update the workflow state record for a project."""
+    """Update or create the workflow state record for a project."""
     result = await db.execute(
         select(WorkflowStateRecord)
         .where(WorkflowStateRecord.project_id == project_id)
     )
     ws = result.scalar_one_or_none()
-    if ws:
+    if ws is None:
+        ws = WorkflowStateRecord(
+            project_id=project_id,
+            current_state=state,
+            current_chapter_no=chapter_no,
+        )
+        db.add(ws)
+    else:
         ws.current_state = state
         ws.current_chapter_no = chapter_no
-        if pending_data is not None:
-            ws.pending_data = json.dumps(pending_data, ensure_ascii=False)
+    if pending_data is not None:
+        ws.pending_data = json.dumps(pending_data, ensure_ascii=False)
     await db.commit()
 
 

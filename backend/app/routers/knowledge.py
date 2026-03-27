@@ -35,6 +35,35 @@ async def _get_project(project_id: str, user: User, db: AsyncSession) -> NovelPr
     return project
 
 
+# ─── Versions & Changes (placed before /{entity_id} to avoid route conflict) ────
+
+@router.get("/versions", response_model=list[KnowledgeVersionResponse])
+async def list_versions(
+    project_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    await _get_project(project_id, user, db)
+    result = await db.execute(
+        select(KnowledgeVersion)
+        .where(KnowledgeVersion.project_id == project_id)
+        .options(selectinload(KnowledgeVersion.changes))
+        .order_by(KnowledgeVersion.version_no.desc())
+        .limit(50)
+    )
+    versions = result.scalars().all()
+    return [KnowledgeVersionResponse(
+        id=v.id, version_no=v.version_no, chapter_no=v.chapter_no,
+        created_at=v.created_at,
+        changes=[KnowledgeChangeResponse(
+            id=c.id, entity_type=c.entity_type, entity_id=c.entity_id,
+            field=c.field, old_value=c.old_value, new_value=c.new_value,
+            is_auto_extracted=c.is_auto_extracted, is_confirmed=c.is_confirmed,
+            created_at=c.created_at,
+        ) for c in v.changes],
+    ) for v in versions]
+
+
 # ─── Entity CRUD ────────────────────────────────────────
 
 @router.get("", response_model=list[KnowledgeEntityResponse])
@@ -112,35 +141,6 @@ async def update_entity(
         first_appearance=e.first_appearance,
         created_at=e.created_at, updated_at=e.updated_at,
     )
-
-
-# ─── Versions & Changes ────────────────────────────────
-
-@router.get("/versions", response_model=list[KnowledgeVersionResponse])
-async def list_versions(
-    project_id: str,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    await _get_project(project_id, user, db)
-    result = await db.execute(
-        select(KnowledgeVersion)
-        .where(KnowledgeVersion.project_id == project_id)
-        .options(selectinload(KnowledgeVersion.changes))
-        .order_by(KnowledgeVersion.version_no.desc())
-        .limit(50)
-    )
-    versions = result.scalars().all()
-    return [KnowledgeVersionResponse(
-        id=v.id, version_no=v.version_no, chapter_no=v.chapter_no,
-        created_at=v.created_at,
-        changes=[KnowledgeChangeResponse(
-            id=c.id, entity_type=c.entity_type, entity_id=c.entity_id,
-            field=c.field, old_value=c.old_value, new_value=c.new_value,
-            is_auto_extracted=c.is_auto_extracted, is_confirmed=c.is_confirmed,
-            created_at=c.created_at,
-        ) for c in v.changes],
-    ) for v in versions]
 
 
 # ─── Confirm Knowledge Changes ─────────────────────────

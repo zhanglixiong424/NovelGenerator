@@ -57,6 +57,7 @@ async def create_project(
         target_word_count=req.target_word_count,
     )
     db.add(project)
+    await db.flush()  # assign project.id before referencing it
     # Create initial workflow state
     ws = WorkflowStateRecord(project_id=project.id, current_state="idle")
     db.add(ws)
